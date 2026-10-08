@@ -8,11 +8,14 @@ import { jwtVerify, createRemoteJWKSet } from "jose";
 import { createRequestHandler } from "react-router";
 import { app as apiApp, receiveEmail } from "./index";
 import { EmailMCP } from "./mcp";
+import { extApp } from "./routes/ext";
+import { requireApiKey, type ApiKeyContext } from "./lib/api-keys";
 import type { Env } from "./types";
 
 export { MailboxDO } from "./durableObject";
 export { EmailAgent } from "./agent";
 export { EmailMCP } from "./mcp";
+export { ApiKeysDO } from "./durableObject/apikeys";
 
 declare module "react-router" {
 	export interface AppLoadContext {
@@ -28,6 +31,15 @@ const requestHandler = createRequestHandler(
 	import.meta.env.MODE,
 );
 
+/**
+ * Paths exempted from Cloudflare Access because they carry their own
+ * credentials: `/api/ext/*` uses API keys, `/unsubscribe` uses signed tokens.
+ *
+ * These paths must ALSO have a bypass policy configured in the Access
+ * application, otherwise the edge rejects the request before the Worker runs.
+ */
+const ACCESS_BYPASS_PATHS = [/^\/api\/ext\//, /^\/unsubscribe/];
+
 function getAccessUrls(teamDomain: string) {
 	const certsPath = "/cdn-cgi/access/certs";
 	const teamUrl = new URL(teamDomain);
@@ -40,12 +52,18 @@ function getAccessUrls(teamDomain: string) {
 }
 
 // Main app that wraps the API and adds React Router fallback
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<ApiKeyContext>();
 
 // Cloudflare Access JWT validation middleware (production only)
 app.use("*", async (c, next) => {
 	// Skip validation in development
 	if (import.meta.env.DEV) {
+		return next();
+	}
+
+	// Authenticated by API key (external apps) or signed token (unsubscribe)
+	// instead of Access. Fails closed: those paths have their own middleware.
+	if (ACCESS_BYPASS_PATHS.some((pattern) => pattern.test(c.req.path))) {
 		return next();
 	}
 
@@ -89,6 +107,12 @@ app.all("/mcp", async (c) => {
 app.all("/mcp/*", async (c) => {
 	return mcpHandler.fetch(c.req.raw, c.env, c.executionCtx as ExecutionContext);
 });
+
+// External API for third-party applications. Authenticated with
+// `Authorization: Bearer ain_<keyId>_<secret>` rather than Cloudflare Access,
+// which is why `/api/ext/*` is exempted from the Access middleware above.
+app.use("/api/ext/*", requireApiKey);
+app.route("/api/ext", extApp);
 
 // Mount the API routes
 app.route("/", apiApp);

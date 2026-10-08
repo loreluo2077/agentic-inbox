@@ -8,6 +8,8 @@ import {
 	CaretLeftIcon,
 	FileIcon,
 	FolderIcon,
+	KeyIcon,
+	MegaphoneIcon,
 	PaperPlaneTiltIcon,
 	PencilSimpleIcon,
 	PlusIcon,
@@ -42,6 +44,8 @@ interface FolderLinkProps {
 	icon: React.ReactNode;
 	label: string;
 	unreadCount?: number;
+	/** Match the path exactly — used by parent links that have child routes. */
+	end?: boolean;
 	onClick?: () => void;
 }
 
@@ -50,11 +54,13 @@ function FolderLink({
 	icon,
 	label,
 	unreadCount,
+	end,
 	onClick,
 }: FolderLinkProps) {
 	return (
 		<NavLink
 			to={to}
+			end={end}
 			onClick={onClick}
 			className={({ isActive }) =>
 				`flex items-center gap-3 py-2 px-3 rounded-md text-sm transition-colors ${
@@ -221,6 +227,28 @@ export default function Sidebar() {
 						</div>
 					</div>
 				)}
+
+				{/* Newsletter console */}
+				<div className="pt-5">
+					<div className="mb-1.5 px-3">
+						<span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">
+							Newsletter
+						</span>
+					</div>
+					<FolderLink
+						to={`/mailbox/${mailboxId}/newsletter`}
+						end
+						icon={<MegaphoneIcon size={18} weight="regular" />}
+						label="Campaigns"
+						onClick={handleNavClick}
+					/>
+					<FolderLink
+						to={`/mailbox/${mailboxId}/newsletter/settings`}
+						icon={<KeyIcon size={18} weight="regular" />}
+						label="API keys"
+						onClick={handleNavClick}
+					/>
+				</div>
 			</nav>
 
 			{/* Create folder dialog */}

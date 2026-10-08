@@ -23,5 +23,21 @@ export const queryKeys = {
 		results: (mailboxId: string, query: string, page: number) =>
 			["search", mailboxId, query, page] as const,
 	},
+	/**
+	 * Newsletter (see docs/newsletter-design.md §12.5). Everything hangs off
+	 * the `newsletter` prefix so a single invalidation clears the whole area.
+	 */
+	newsletter: {
+		campaigns: (mailboxId: string) =>
+			["newsletter", mailboxId, "campaigns"] as const,
+		campaign: (mailboxId: string, campaignId: string) =>
+			["newsletter", mailboxId, "campaign", campaignId] as const,
+		subscribers: (mailboxId: string, params: Record<string, string>) =>
+			["newsletter", mailboxId, "subscribers", params] as const,
+		settings: (mailboxId: string) =>
+			["newsletter", mailboxId, "settings"] as const,
+		quota: (mailboxId: string) => ["newsletter", mailboxId, "quota"] as const,
+		apiKeys: () => ["newsletter", "apiKeys"] as const,
+	},
 	config: ["config"] as const,
 };

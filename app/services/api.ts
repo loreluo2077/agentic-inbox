@@ -2,7 +2,14 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-import type { Email, Folder, Mailbox } from "~/types";
+import type {
+	ApiKey,
+	ApiKeyCapability,
+	CreatedApiKey,
+	Email,
+	Folder,
+	Mailbox,
+} from "~/types";
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -160,6 +167,19 @@ const api = {
 	// Search
 	searchEmails: (mailboxId: string, params: Record<string, string>) =>
 		get<EmailListResponse | Email[]>(`/api/v1/mailboxes/${mailboxId}/search`, { params }),
+
+	// API keys (external application access)
+	listApiKeys: () =>
+		get<{ keys: ApiKey[]; availableCapabilities: ApiKeyCapability[] }>(
+			"/api/v1/api-keys",
+		),
+	createApiKey: (input: {
+		name: string;
+		mailboxIds: string[];
+		capabilities: string[];
+		expiresAt?: string | null;
+	}) => post<CreatedApiKey>("/api/v1/api-keys", input),
+	revokeApiKey: (id: string) => del<void>(`/api/v1/api-keys/${id}`),
 };
 
 export default api;

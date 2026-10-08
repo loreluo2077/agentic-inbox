@@ -18,6 +18,8 @@
 		"deploy": "npm run build && wrangler deploy",
 		"dev": "react-router dev",
 		"preview": "npm run build && vite preview",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"typecheck": "npm run cf-typegen && react-router typegen && tsc -b"
 	},
 	"dependencies": {
@@ -93,6 +95,7 @@
 		"typescript": "^5.8.3",
 		"vite": "^6.3.3",
 		"vite-tsconfig-paths": "^5.1.4",
+		"vitest": "^4.1.11",
 		"wrangler": "^4.74.0"
 	}
 }

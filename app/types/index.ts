@@ -64,3 +64,34 @@ export interface Folder {
 	name: string;
 	unreadCount: number;
 }
+
+// ── External API keys (see docs/newsletter-design.md §4) ───────────
+
+/** Capabilities an external API key can hold. `keys:admin` is never grantable. */
+export type ApiKeyCapability =
+	| "subscribers:read"
+	| "subscribers:write"
+	| "campaigns:read"
+	| "campaigns:write"
+	| "campaigns:send";
+
+export interface ApiKey {
+	id: string;
+	name: string;
+	/** Display-only prefix, e.g. `ain_ab12cd34`. */
+	prefix: string;
+	/** `["*"]` means every mailbox. */
+	mailboxIds: string[];
+	capabilities: string[];
+	createdAt: string;
+	createdBy: string;
+	lastUsedAt: string | null;
+	expiresAt: string | null;
+	revokedAt: string | null;
+}
+
+/** Returned only from the create call — `plaintext` is never retrievable again. */
+export interface CreatedApiKey {
+	key: ApiKey;
+	plaintext: string;
+}

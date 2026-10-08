@@ -17,6 +17,7 @@ import {
 } from "./lib/email-helpers";
 import { SendEmailRequestSchema } from "./lib/schemas";
 import { handleReplyEmail, handleForwardEmail } from "./routes/reply-forward";
+import { apiKeysAdminApp } from "./routes/api-keys-admin";
 import { Folders } from "../shared/folders";
 import type { Env } from "./types";
 import { requireMailbox, type MailboxContext } from "./lib/mailbox";
@@ -91,6 +92,10 @@ app.get("/api/v1/config", (c) => {
 	const emailAddresses = c.env.EMAIL_ADDRESSES ?? [];
 	return c.json({ domains, emailAddresses });
 });
+
+// -- API keys (external application access) -------------------------
+
+app.route("/api/v1/api-keys", apiKeysAdminApp);
 
 // -- Mailboxes ------------------------------------------------------
 
